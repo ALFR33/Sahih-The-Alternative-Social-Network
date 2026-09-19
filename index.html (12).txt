@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>شبكة صحيح الاجتماعية البديلة 🌿✨</title>
+
+  <!-- خط القاهرة العربي -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: { fontFamily: { sans: ['Cairo', 'sans-serif'] } }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Cairo', sans-serif; background-color: #020617; color: #f8fafc; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 dir-rtl text-right min-h-screen">
+
+  <div id="root"></div>
+
+  <!-- البرمجة الكاملة في ملف واحد -->
+  <script type="text/javascript">
+    // بيانات وحالة المنصة
+    let posts = JSON.parse(localStorage.getItem("sahih_social_html_v1") || "[]");
+    let bannedUsers = JSON.parse(localStorage.getItem("sahih_banned_users_html") || "[]");
+    let currentUser = localStorage.getItem("sahih_current_user") || "زائر";
+    let currentUserRole = localStorage.getItem("sahih_current_role") || "visitor"; // 'visitor' | 'user' | 'admin'
+
+    if (posts.length === 0) {
+      posts = [
+        {
+          id: "p1",
+          author: "أحمد العتيبي",
+          isVerified: true,
+          content: "تلاوة خاشعة لآيات من سورة الرحمٰن مع مناظر طبيعية مهدئة للأعصاب. أسأل الله أن يبارك في يومكم جميعاً. 🌿📖",
+          category: "quran",
+          likes: 34,
+          isLiked: false,
+          comments: [
+            { id: "c1", author: "سارة محمود", text: "ما شاء الله تبارك الله، تلاوة خاشعة وصوت رائع." }
+          ],
+          audioUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+          imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80",
+          badge: "محتوى موثق - صحيح ✨"
+        }
+      ];
+      saveData();
+    }
+
+    function saveData() {
+      localStorage.setItem("sahih_social_html_v1", JSON.stringify(posts));
+      localStorage.setItem("sahih_banned_users_html", JSON.stringify(bannedUsers));
+      localStorage.setItem("sahih_current_user", currentUser);
+      localStorage.setItem("sahih_current_role", currentUserRole);
+      render();
+    }
+
+    // تبديل المودالات
+    function toggleAuthModal() {
+      document.getElementById("authModal").classList.toggle("hidden");
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const nameVal = document.getElementById("authNameInput").value.trim();
+      const codeVal = document.getElementById("adminCodeInput").value.trim();
+
+      if (codeVal) {
+        if (codeVal === "911" || codeVal === "admin123") {
+          currentUserRole = "admin";
+          currentUser = "صاحب الموقع (المدير)";
+        } else {
+          alert("رمز المرور الخاص بالإدارة غير صحيح!");
+          return;
+        }
+      } else {
+        currentUserRole = "user";
+        currentUser = nameVal || "مستخدم مسجل";
+      }
+
+      toggleAuthModal();
+      document.getElementById("authNameInput").value = "";
+      document.getElementById("adminCodeInput").value = "";
+      saveData();
+    }
+
+    function handleLogout() {
+      currentUserRole = "visitor";
+      currentUser = "زائر";
+      saveData();
+    }
+
+    // إنشاء منشور جديد
+    function handleCreatePost(e) {
+      e.preventDefault();
+      const text = document.getElementById("postTextInput").value.trim();
+      if (!text) return;
+
+      if (bannedUsers.includes(currentUser)) {
+        alert("حسابك محظور من النشر على هذه المنصة!");
+        return;
+      }
+
+      const audioFile = document.getElementById("audioFileInput").files[0];
+      const imageFile = document.getElementById("imageFileInput").files[0];
+
+      const isAdmin = currentUserRole === 'admin';
+      const newPost = {
+        + Date.now(),likes: 0,
+        isLiked: false,
+        comments: [],
+        badge: isAdmin ? "محتوى موثق - صاحب الموقع 🛡️" : "محتوى موثق - صحيح ✨",
+        audioUrl: audioFile ? URL.createObjectURL(audioFile) : null,
+        imageUrl: imageFile ? URL.createObjectURL(imageFile) : null,
+      };
+
+      posts.unshift(newPost);
+      document.getElementById("postTextInput").value = "";
+      document.getElementById("audioFileInput").value = "";
+      document.getElementById("imageFileInput").value = "";
+      saveData();
+    }
+
+    // حظر مستخدم وشطب جميع منشوراته
+    function handleBanUser(authorToBan) {
+      if (confirm(`هل أنت تأكد من رغبتك في حظر المستخدم (${authorToBan}) وشطب جميع منشوراته من المنصة؟`)) {
+        bannedUsers.push(authorToBan);
+        posts = posts.filter(p => p.author !== authorToBan);
+        saveData();
+      }
+    }
+
+    // حذف منشور
+    function handleDeletePost(postId) {
+      if (confirm("هل أنت تأكد من رغبتك في حذف هذا المنشور؟")) {
+        posts = posts.filter(p => p.id !== postId);
+        saveData();
+      }
+    }
+
+    // إضافة تعليق
+    function handleAddComment(postId) {
+      const input = document.getElementById("comment_input_" + postId);
+      if (!input || !input.value.trim()) return;
+
+      const p = posts.find(item => item.id === postId);
+      if (p) {
+        p.comments.push({
++ Date.now(),.trim()
+        });
+        saveData();
+      }
+    }
+
+    // حذف تعليق
+    function handleDeleteComment(postId, commentId) {
+      const p = posts.find(item => item.id === postId);
+      if (p) {
+        p.comments = p.comments.filter(c => c.id !== commentId);
+        saveData();
+      }
+    }
+
+    // الإعجاب
+    function handleLike(postId) {
+      const p = posts.find(item => item.id === postId);
+      if (p) {
+        p.isLiked = !p.isLiked;
+        p.likes += p.isLiked ? 1 : -1;
+        saveData();
+      }
+    }
+
+    // الرسم والعرْض التلقائي
+    function render() {
+      const root = document.getElementById("root");
+      const filteredPosts = posts.filter(p => !bannedUsers.includes(p.author));
+
+      root.innerHTML = `
+        <div class="max-w-4xl mx-auto p-4 space-y-6">
+          
+          <!-- الهيدر العلوي -->
+          <header class="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex items-center justify-between shadow-2xl sticky top-2 z-50">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center">📖</div>
+              <div>
+                <h1 class="text-base font-black text-white flex items-center gap-2">
+                  <span>شبكة صحيح الاجتماعية البديلة</span>
+                  <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold">مجتمع صحيح ✨</span>
+                </h1>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              ${currentUserRole === 'visitor' ? `
+                <button onclick="toggleAuthModal()" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs">
+                  دخول / تسجيل ➔
+                </button>
+              ` : `
+                <span class="text-xs font-bold text-emerald-400 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                  ${currentUserRole === 'admin' ? '🛡️ صاحب الموقع (المدير)' : '👤 ' + currentUser}
+                </span>
+                <button onclick="handleLogout()" class="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-400 text-xs font-bold border border-rose-500/30">خروج</button>
+              `}
+            </div>
+          </header>
+
+          <!-- كارت إنشاء منشور جديد -->
+          <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3">
+            <h3 class="text-xs font-black text-white">انشر منشوراً أو تلاوة صوتية بختم صحيح ✨</h3>
+            <form onsubmit="handleCreatePost(event)" class="space-y-3">
+              <textarea id="postTextInput" rows="3" placeholder="اكتب ما تحب نشره هنا..." class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-3 text-xs text-white focus:outline-none focus:border-amber-500" required></textarea>
+
+              <div class="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-800">
+                <div class="flex items-center gap-2">
+                  <label class="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-300 cursor-pointer">
+                    🎤 إرفاق صوت
+                    <input id="audioFileInput" type="file" accept="audio/*" class="hidden" />
+                  </label>
+                  <label class="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-300 cursor-pointer">
+                    🖼️ إرفاق صورة
+                    <input id="imageFileInput" type="file" accept="image/*" class="hidden" />
+                  </label>
+                </div>
+
+                <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-lg">
+                  نشر على المنصة ➔
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- خلاصة المنشورات -->
+          <div class="space-y-4">
+            ${filteredPosts.map(p => `
+              <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span class="font-black text-white text-xs">${p.author} ✓</span>
+                    <span class="text-[10px] text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">${p.badge}</span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    ${currentUserRole === 'admin' && p.author !== currentUser ? `
+                      <button onclick="handleBanUser('${p.author}')" class="px-2.5 py-1 bg-rose-600/20 text-rose-300 border border-rose-500/40 text-[10px] font-bold rounded-xl">
+                        🚫 حظر المستخدم
+                      </button>
+                    ` : ''}
+
+                    ${(currentUserRole === 'admin' || p.author === currentUser) ? `
+                      <button onclick="handleDeletePost('${p.id}')" class="p-1 text-rose-400 font-bold hover:text-rose-300 text-xs" title="حذف المنشور">
+                        🗑️ حذف
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <p class="text-xs text-slate-200 leading-relaxed font-bold">${p.content}</p>
+
+                ${p.imageUrl ? `
+                  <div class="rounded-2xl overflow-hidden max-h-80">
+                    <img src="${p.imageUrl}" class="w-full h-full object-cover" />
+                  </div>
+                ` : ''}
+
+                ${p.audioUrl ? `
+                  <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                    <audio src="${p.audioUrl}" controls class="w-full h-10"></audio>
+                  </div>
+                ` : ''}
+
+                <!-- التفاعل والتعليقات -->
+                <div class="flex items-center justify-between border-t border-slate-800 pt-3 text-xs font-bold text-slate-400">
+                  <button onclick="handleLike('${p.id}')" class="flex items-center gap-1 ${p.isLiked ? 'text-rose-400' : ''}">
+                    ❤️ <span>${p.likes} إعجاب</span>
+                  </button>
+                  <span>💬 ${p.comments.length} تعليقات</span>
+                </div>
+
+                <!-- تعليقات المنشور -->
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800/80 space-y-2 text-xs">
+                  ${p.comments.map(c => `
+                    <div class="bg-slate-900 p-2 rounded-xl flex items-center justify-between">
+                      <div>
+                        <strong class="text-amber-300 block text-[11px]">${c.author}</strong>
+                        <span class="text-slate-200 text-xs">${c.text}</span>
+                      </div>
+                      ${(currentUserRole === 'admin' || c.author === currentUser) ? `
+                        <button onclick="handleDeleteComment('${p.id}', '${c.id}')" class="text-rose-400 p-1 text-xs">🗑️</button>
+                      ` : ''}
+                    </div>
+                  `).join("")}
+
+                  <div class="flex gap-2 pt-2 border-t border-slate-800">
+                    <input id="comment_input_${p.id}" type="text" placeholder="اكتب تعليقك..." class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-white" />
+                    <button onclick="handleAddComment('${p.id}')" class="px-3 py-2 bg-emerald-600 text-slate-950 font-black text-xs rounded-xl">إرسال</button>
+                  </div>
+                </div>
+
+              </div>
+            `).join("")}
+          </div>
+
+        </div>
+
+        <!-- المودال الخاص بالتسجيل والدخول -->
+        <div id="authModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-4">
+            <h3 class="text-sm font-black text-white">تسجيل الدخول للمنصة</h3>
+            <form onsubmit="handleLogin(event)" class="space-y-3">
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 block mb-1">اسمك في المنصة:</label>
+                <input id="authNameInput" type="text" placeholder="أدخل اسمك..." class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+              </div>
+
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 block mb-1">رمز المرور الخاص بالإدارة (اختياري):</label>
+                <input id="adminCodeInput" type="password" placeholder="أدخل الرمز السري للإدارة (مثال: 911)..." class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-300 font-mono" />
+              </div>
+
+              <div class="flex gap-2 pt-2">
+                <button type="submit" class="w-full py-2.5 bg-amber-500 text-slate-950 font-black text-xs rounded-xl">دخول ➔</button>
+                <button type="button" onclick="toggleAuthModal()" class="w-full py-2.5 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl">إلغاء</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    // تشغيل التطبيق الأول
+    render();
+  </script>
+</body>
+</html>
